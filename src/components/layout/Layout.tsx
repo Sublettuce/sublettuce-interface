@@ -1,4 +1,5 @@
 import React from "react";
+import Navbar from "./Navbar";
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -7,7 +8,14 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps): JSX.Element => {
     return (
         <>
-            <header></header>
+            <header>
+                <Navbar
+                    links={[
+                        { link: "/explore", label: "Explore" },
+                        { link: "/list", label: "List" },
+                    ]}
+                />
+            </header>
             <main>{children}</main>
         </>
     );
