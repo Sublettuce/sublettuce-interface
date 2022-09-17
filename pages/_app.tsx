@@ -4,6 +4,7 @@ import { RainbowKitProvider, getDefaultWallets } from '@rainbow-me/rainbowkit';
 import { chain, configureChains, createClient, WagmiConfig } from 'wagmi';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
+import { MantineProvider } from '@mantine/core';
 
 const { chains, provider, webSocketProvider } = configureChains(
   [
@@ -41,7 +42,16 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <WagmiConfig client={wagmiClient}>
       <RainbowKitProvider chains={chains}>
+      <MantineProvider
+        withGlobalStyles
+        withNormalizeCSS
+        theme={{
+          /** Put your mantine theme override here */
+          colorScheme: 'light',
+        }}
+      >
         <Component {...pageProps} />
+        </MantineProvider>
       </RainbowKitProvider>
     </WagmiConfig>
   );
