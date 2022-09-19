@@ -125,7 +125,11 @@ export default function HeaderAction({ links }: HeaderActionProps) {
                         className={classes.burger}
                         size="sm"
                     />
-                    <Title order={1}>Sublet</Title>
+                    <Link href="/">
+                        <a className="no-underline text-inherit">
+                            <Title order={1}>Sublet</Title>
+                        </a>
+                    </Link>
                 </Group>
                 <Autocomplete
                     value={value}
