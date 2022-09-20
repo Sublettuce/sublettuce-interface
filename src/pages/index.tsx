@@ -1,13 +1,6 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { NextPage } from "next";
-import {
-    createStyles,
-    Title,
-    Text,
-    Button,
-    Grid,
-    Col,
-} from "@mantine/core";
+import { createStyles, Title, Text, Button, Grid, Col } from "@mantine/core";
 
 const useStyles = createStyles((theme) => ({
     wrapper: {
@@ -50,8 +43,8 @@ const Home: NextPage = () => {
                         </span>
                     </Title>
                     <Text color="dimmed">
-                        Sublet uses the brand new ENS Namewrapper contract to
-                        unlock the full potential of ENS domain subletting
+                        Sublet leverages the brand new ENS Namewrapper contract
+                        to unleash the power of ENS subletting
                     </Text>
 
                     <Button
