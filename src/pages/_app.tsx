@@ -12,7 +12,7 @@ import { publicProvider } from "wagmi/providers/public";
 import { MantineProvider } from "@mantine/core";
 import { Provider as UrqlProvider } from "urql";
 import { urqlClient } from "../utils/urql";
-import Layout from "../components/layout/Layout";
+import Layout from "../components/Layout";
 
 const { chains, provider, webSocketProvider } = configureChains(
     [
