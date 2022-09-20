@@ -10,6 +10,8 @@ import { chain, configureChains, createClient, WagmiConfig } from "wagmi";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
 import { MantineProvider } from "@mantine/core";
+import { Provider as UrqlProvider } from "urql";
+import { urqlClient } from "../utils/urql";
 import Layout from "../components/layout/Layout";
 
 const { chains, provider, webSocketProvider } = configureChains(
@@ -44,20 +46,22 @@ const wagmiClient = createClient({
 function MyApp({ Component, pageProps }: AppProps) {
     return (
         <WagmiConfig client={wagmiClient}>
-            <RainbowKitProvider chains={chains} theme={darkTheme()}>
-                <MantineProvider
-                    withGlobalStyles
-                    withNormalizeCSS
-                    theme={{
-                        /** Put your mantine theme override here */
-                        colorScheme: "dark",
-                    }}
-                >
-                    <Layout>
-                        <Component {...pageProps} />
-                    </Layout>
-                </MantineProvider>
-            </RainbowKitProvider>
+            <UrqlProvider value={urqlClient}>
+                <RainbowKitProvider chains={chains} theme={darkTheme()}>
+                    <MantineProvider
+                        withGlobalStyles
+                        withNormalizeCSS
+                        theme={{
+                            /** Put your mantine theme override here */
+                            colorScheme: "dark",
+                        }}
+                    >
+                        <Layout>
+                            <Component {...pageProps} />
+                        </Layout>
+                    </MantineProvider>
+                </RainbowKitProvider>
+            </UrqlProvider>
         </WagmiConfig>
     );
 }
