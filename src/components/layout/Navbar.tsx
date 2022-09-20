@@ -116,7 +116,7 @@ export default function HeaderAction({ links }: HeaderActionProps) {
     });
 
     return (
-        <Header height={HEADER_HEIGHT} sx={{ borderBottom: 0 }} mb={120}>
+        <Header height={HEADER_HEIGHT} sx={{ borderBottom: 0 }}>
             <Container className={classes.inner} fluid>
                 <Group className="mr-4">
                     <Burger
