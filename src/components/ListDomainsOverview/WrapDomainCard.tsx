@@ -1,7 +1,7 @@
 import { Button, Card, Container, Group, Text } from "@mantine/core";
 import useStyles from "./DomainCard.styles";
 
-export default function ListDomainCard({ domain }: { domain: any }) {
+export default function WrapDomainCard({ domain }: { domain: any }) {
     const { classes } = useStyles();
     return (
         <Card className={classes.card} shadow="sm" radius="md">
