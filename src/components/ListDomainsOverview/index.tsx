@@ -12,11 +12,13 @@ export default function ListDomainsOverview() {
         accounts(where: {id: "${address?.toLowerCase()}"}) {
             domains {
                 name
+                labelName
             }
             wrappedDomains {
                 id
                 domain {
                     name
+                    labelName
                 }
             }
         }
