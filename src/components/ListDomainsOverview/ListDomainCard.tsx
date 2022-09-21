@@ -29,6 +29,7 @@ const useStyles = createStyles((theme, _params, getRef) => {
         },
         scaled: {
             ref: scaled,
+            flexGrow: 1,
             transition: "transform 500ms ease",
         },
     };
