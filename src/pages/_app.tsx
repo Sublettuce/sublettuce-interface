@@ -47,13 +47,13 @@ function MyApp({ Component, pageProps }: AppProps) {
     return (
         <WagmiConfig client={wagmiClient}>
             <UrqlProvider value={urqlClient}>
-                <RainbowKitProvider chains={chains} theme={darkTheme()}>
+                <RainbowKitProvider chains={chains}>
                     <MantineProvider
                         withGlobalStyles
                         withNormalizeCSS
                         theme={{
                             /** Put your mantine theme override here */
-                            colorScheme: "dark",
+                            colorScheme: "light",
                         }}
                     >
                         <Layout>
