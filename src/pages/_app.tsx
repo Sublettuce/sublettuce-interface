@@ -10,6 +10,7 @@ import { chain, configureChains, createClient, WagmiConfig } from "wagmi";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
 import { MantineProvider } from "@mantine/core";
+import { ModalsProvider } from "@mantine/modals";
 import { Provider as UrqlProvider } from "urql";
 import { urqlClient } from "../utils/urql";
 import Layout from "../components/Layout";
@@ -56,9 +57,11 @@ function MyApp({ Component, pageProps }: AppProps) {
                             colorScheme: "light",
                         }}
                     >
-                        <Layout>
-                            <Component {...pageProps} />
-                        </Layout>
+                        <ModalsProvider>
+                            <Layout>
+                                <Component {...pageProps} />
+                            </Layout>
+                        </ModalsProvider>
                     </MantineProvider>
                 </RainbowKitProvider>
             </UrqlProvider>

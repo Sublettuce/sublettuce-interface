@@ -1,5 +1,6 @@
-import { Button, Card, Container, Group, Text } from "@mantine/core";
+import { Button, Card, Container, Group, Text, Title } from "@mantine/core";
 import useStyles from "./DomainCard.styles";
+import { openModal, closeAllModals } from "@mantine/modals";
 
 export default function ListDomainCard({ domain }: { domain: any }) {
     const { classes } = useStyles();
@@ -12,7 +13,21 @@ export default function ListDomainCard({ domain }: { domain: any }) {
                         {domain.name.slice(-4)}
                     </Text>
                 </Container>
-                <Button>List</Button>
+                <Button
+                    onClick={() => {
+                        openModal({
+                            title: (
+                                <Title order={2}>
+                                    List subdomains for rent
+                                </Title>
+                            ),
+                            children: <></>,
+                            centered: true,
+                        });
+                    }}
+                >
+                    List
+                </Button>
             </Group>
         </Card>
     );
