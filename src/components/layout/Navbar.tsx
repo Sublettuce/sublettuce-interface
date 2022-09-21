@@ -17,7 +17,7 @@ import { IconChevronDown, IconSearch } from "@tabler/icons";
 import Link from "next/link";
 import { useState } from "react";
 
-const HEADER_HEIGHT = 60;
+const HEADER_HEIGHT = 70;
 
 const useStyles = createStyles((theme) => ({
     inner: {
