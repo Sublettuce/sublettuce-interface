@@ -75,9 +75,10 @@ interface HeaderActionProps {
 export default function HeaderAction({ links }: HeaderActionProps) {
     const [value, setValue] = useState("");
     const data =
-        value.trim().length > 0 && !value.endsWith(".")
+        value.trim().length > 0 &&
+        !(value.endsWith(".") || value.endsWith(".eth"))
             ? ["eth"].map((provider) => `${value}.${provider}`)
-            : [];
+            : [value];
 
     const { classes } = useStyles();
     const [opened, { toggle }] = useDisclosure(false);
