@@ -55,6 +55,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                         theme={{
                             /** Put your mantine theme override here */
                             colorScheme: "light",
+                            defaultRadius: "md",
                         }}
                     >
                         <ModalsProvider>

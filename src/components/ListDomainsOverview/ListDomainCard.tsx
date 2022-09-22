@@ -4,9 +4,12 @@ import {
     Card,
     Container,
     Group,
+    Select,
+    NumberInput,
     Text,
     TextInput,
     Title,
+    Switch,
 } from "@mantine/core";
 import { openModal, closeAllModals } from "@mantine/modals";
 import { useForm } from "@mantine/form";
@@ -17,11 +20,61 @@ import { IconTrash } from "@tabler/icons";
 function ModalForm({ domain }: { domain: any }) {
     const form = useForm({
         initialValues: {
-            subDomains: [{ label: "", any: true, key: randomId() }],
+            subDomains: [{ labels: "", any: true, key: randomId() }],
         },
     });
+    const tokenSelect = (
+        <Select
+            data={[
+                { value: "weth", label: "wETH" },
+                { value: "usdc", label: "USDC" },
+            ]}
+            styles={{
+                input: {
+                    fontWeight: 500,
+                    borderTopLeftRadius: 0,
+                    borderBottomLeftRadius: 0,
+                },
+            }}
+            defaultValue="weth"
+        />
+    );
     return (
         <>
+            <Group grow spacing="sm" mb={10}>
+                <NumberInput
+                    className="w-full max-w-[65%]"
+                    label="Price"
+                    hideControls={true}
+                    rightSection={tokenSelect}
+                    placeholder="Payment per interval"
+                    styles={() => ({
+                        rightSection: {
+                            width: "90px",
+                        },
+                    })}
+                />
+                <Select
+                    label="Interval"
+                    data={[{ value: "monthly", label: "Monthly" }]}
+                    defaultValue="monthly"
+                    className="max-w-[30%]"
+                />
+            </Group>
+            <Group grow>
+                <NumberInput
+                    label={<Switch label="Minimum" mb={2} />}
+                    rightSection={<Text size="sm">Months</Text>}
+                    rightSectionWidth={80}
+                    min={1}
+                ></NumberInput>
+                <NumberInput
+                    label={<Switch label="Maximum" mb={2} />}
+                    rightSection={<Text size="sm">Months</Text>}
+                    rightSectionWidth={80}
+                    min={1}
+                ></NumberInput>
+            </Group>
             {form.values.subDomains.map((item, index) => (
                 <Group key={item.key} mt="xs">
                     <TextInput
@@ -55,6 +108,7 @@ function ModalForm({ domain }: { domain: any }) {
             ))}
             <Group position="center" mt="md">
                 <Button
+                    variant="subtle"
                     onClick={() =>
                         form.insertListItem("subDomains", {
                             name: "",
