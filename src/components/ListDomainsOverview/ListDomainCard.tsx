@@ -10,6 +10,10 @@ import {
     TextInput,
     Title,
     Switch,
+    SegmentedControl,
+    Box,
+    Divider,
+    LoadingOverlay,
 } from "@mantine/core";
 import { openModal, closeAllModals } from "@mantine/modals";
 import { useForm } from "@mantine/form";
@@ -20,7 +24,8 @@ import { IconTrash } from "@tabler/icons";
 function ModalForm({ domain }: { domain: any }) {
     const form = useForm({
         initialValues: {
-            subDomains: [{ labels: "", any: true, key: randomId() }],
+            listType: "any",
+            subDomains: [{ label: "", key: randomId() }],
         },
     });
     const tokenSelect = (
@@ -41,7 +46,8 @@ function ModalForm({ domain }: { domain: any }) {
     );
     return (
         <>
-            <Group grow spacing="sm" mb={10}>
+            {/* <LoadingOverlay visible={true} overlayBlur={2} radius="md" /> */}
+            <Group grow spacing="sm">
                 <NumberInput
                     className="w-full max-w-[65%]"
                     label="Price"
@@ -69,57 +75,99 @@ function ModalForm({ domain }: { domain: any }) {
                     min={1}
                 ></NumberInput>
                 <NumberInput
-                    label={<Switch label="Maximum" mb={2} />}
-                    rightSection={<Text size="sm">Months</Text>}
+                    label={
+                        <Switch
+                            label={<Text color="dimmed">Maximum</Text>}
+                            mb={2}
+                        />
+                    }
+                    rightSection={
+                        <Text size="sm" color="dimmed">
+                            Months
+                        </Text>
+                    }
                     rightSectionWidth={80}
                     min={1}
+                    disabled
                 ></NumberInput>
             </Group>
-            {form.values.subDomains.map((item, index) => (
-                <Group key={item.key} mt="xs">
-                    <TextInput
-                        placeholder="Subdomain"
-                        withAsterisk
-                        sx={{ flex: 1 }}
-                        styles={() => ({
-                            input: {
-                                border: "none",
-                                borderRadius: 0,
-                                borderBottom: "1px solid",
-                            },
-                            rightSection: {
-                                minWidth: "max-content",
-                            },
-                        })}
-                        {...form.getInputProps(`subDomains.${index}.name`)}
-                        rightSection={
-                            <Text color="dimmed" className="min-w-max">
-                                .{domain.name}
-                            </Text>
-                        }
-                    />
-                    <ActionIcon
-                        color="red"
-                        onClick={() => form.removeListItem("subDomains", index)}
-                    >
-                        <IconTrash size={16} />
-                    </ActionIcon>
-                </Group>
-            ))}
-            <Group position="center" mt="md">
-                <Button
-                    variant="subtle"
-                    onClick={() =>
-                        form.insertListItem("subDomains", {
-                            name: "",
-                            any: false,
-                            key: randomId(),
-                        })
-                    }
-                >
-                    Add subdomain
-                </Button>
-            </Group>
+            <Divider
+                mt="md"
+                mb={2}
+                label="Choose subdomains"
+                labelPosition="center"
+            />
+            <Box mb="md">
+                <SegmentedControl
+                    data={[
+                        { value: "any", label: "Any" },
+                        { value: "individual", label: "Individual" },
+                    ]}
+                    className="w-full"
+                    {...form.getInputProps("listType")}
+                />
+                {form.values.listType == "individual" ? (
+                    <>
+                        {form.values.subDomains.map((item, index) => (
+                            <Group key={item.key} mt="xs">
+                                <TextInput
+                                    placeholder="Subdomain"
+                                    withAsterisk
+                                    sx={{ flex: 1 }}
+                                    styles={() => ({
+                                        input: {
+                                            border: "none",
+                                            borderRadius: 0,
+                                            borderBottom: "1px solid",
+                                        },
+                                        rightSection: {
+                                            minWidth: "max-content",
+                                        },
+                                    })}
+                                    {...form.getInputProps(
+                                        `subDomains.${index}.name`
+                                    )}
+                                    rightSection={
+                                        <Text
+                                            color="dimmed"
+                                            className="min-w-max"
+                                        >
+                                            .{domain.name}
+                                        </Text>
+                                    }
+                                />
+                                <ActionIcon
+                                    color="red"
+                                    onClick={() =>
+                                        form.removeListItem("subDomains", index)
+                                    }
+                                >
+                                    <IconTrash size={16} />
+                                </ActionIcon>
+                            </Group>
+                        ))}
+                        <Group position="center" mt="xs">
+                            <Button
+                                variant="subtle"
+                                onClick={() =>
+                                    form.insertListItem("subDomains", {
+                                        name: "",
+                                        any: false,
+                                        key: randomId(),
+                                    })
+                                }
+                            >
+                                Add another subdomain
+                            </Button>
+                        </Group>
+                    </>
+                ) : (
+                    <Text>Users will be able to rent any subdomain</Text>
+                )}
+            </Box>
+            <Button fullWidth size="md">
+                Confirm
+            </Button>
         </>
     );
 }
