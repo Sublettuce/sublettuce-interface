@@ -24,6 +24,13 @@ import { IconTrash } from "@tabler/icons";
 function ModalForm({ domain }: { domain: any }) {
     const form = useForm({
         initialValues: {
+            price: "",
+            token: "weth",
+            interval: "year",
+            minEnabled: true,
+            maxEnabled: false,
+            minIntervals: 1,
+            maxIntervals: undefined,
             listType: "any",
             subDomains: [{ label: "", key: randomId() }],
         },
@@ -42,16 +49,16 @@ function ModalForm({ domain }: { domain: any }) {
                 },
             }}
             defaultValue="weth"
+            {...form.getInputProps("token")}
         />
     );
     return (
         <>
             {/* <LoadingOverlay visible={true} overlayBlur={2} radius="md" /> */}
             <Group grow spacing="sm">
-                <NumberInput
+                <TextInput
                     className="w-full max-w-[65%]"
                     label="Price"
-                    hideControls={true}
                     rightSection={tokenSelect}
                     placeholder="Payment per interval"
                     styles={() => ({
@@ -62,33 +69,79 @@ function ModalForm({ domain }: { domain: any }) {
                 />
                 <Select
                     label="Interval"
-                    data={[{ value: "monthly", label: "Monthly" }]}
+                    data={[
+                        { value: "day", label: "Daily" },
+                        { value: "month", label: "Monthly" },
+                        { value: "year", label: "Yearly" },
+                    ]}
                     defaultValue="monthly"
                     className="max-w-[30%]"
+                    {...form.getInputProps("interval")}
                 />
             </Group>
             <Group grow>
                 <NumberInput
-                    label={<Switch label="Minimum" mb={2} />}
-                    rightSection={<Text size="sm">Months</Text>}
-                    rightSectionWidth={80}
-                    min={1}
-                ></NumberInput>
-                <NumberInput
                     label={
                         <Switch
-                            label={<Text color="dimmed">Maximum</Text>}
+                            label={
+                                <Text
+                                    color={
+                                        !form.values.minEnabled ? "dimmed" : ""
+                                    }
+                                >
+                                    Minimum
+                                </Text>
+                            }
                             mb={2}
+                            {...form.getInputProps("minEnabled")}
+                            defaultChecked={true}
                         />
                     }
                     rightSection={
-                        <Text size="sm" color="dimmed">
-                            Months
+                        <Text
+                            size="sm"
+                            color={!form.values.minEnabled ? "dimmed" : ""}
+                        >
+                            {form.values.interval.charAt(0).toUpperCase() +
+                                form.values.interval.slice(1)}
+                            s
                         </Text>
                     }
                     rightSectionWidth={80}
                     min={1}
-                    disabled
+                    disabled={!form.values.minEnabled}
+                    {...form.getInputProps("minIntervals")}
+                />
+                <NumberInput
+                    label={
+                        <Switch
+                            label={
+                                <Text
+                                    color={
+                                        !form.values.maxEnabled ? "dimmed" : ""
+                                    }
+                                >
+                                    Maximum
+                                </Text>
+                            }
+                            mb={2}
+                            {...form.getInputProps("maxEnabled")}
+                        />
+                    }
+                    rightSection={
+                        <Text
+                            size="sm"
+                            color={!form.values.maxEnabled ? "dimmed" : ""}
+                        >
+                            {form.values.interval.charAt(0).toUpperCase() +
+                                form.values.interval.slice(1)}
+                            s
+                        </Text>
+                    }
+                    rightSectionWidth={80}
+                    min={1}
+                    disabled={!form.values.maxEnabled}
+                    {...form.getInputProps("maxIntervals")}
                 ></NumberInput>
             </Group>
             <Divider
