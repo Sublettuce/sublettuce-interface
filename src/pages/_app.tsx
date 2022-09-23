@@ -17,7 +17,7 @@ import Layout from "../components/Layout";
 
 const { chains, provider, webSocketProvider } = configureChains(
     [
-        chain.localhost,
+        chain.hardhat,
         ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === "true"
             ? [chain.goerli]
             : []),
