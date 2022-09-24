@@ -1,6 +1,7 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { NextPage } from "next";
 import { createStyles, Title, Text, Button, Grid, Col } from "@mantine/core";
+import Head from "next/head";
 
 const useStyles = createStyles((theme) => ({
   wrapper: {
@@ -34,6 +35,9 @@ const Home: NextPage = () => {
 
   return (
     <div className={classes.wrapper}>
+      <Head>
+        <title>Sublet</title>
+      </Head>
       <Grid gutter={80} className="w-screen">
         <Col span={12} md={5}>
           <Title className={classes.title} order={2}>
