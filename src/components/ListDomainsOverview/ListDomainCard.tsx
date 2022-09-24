@@ -14,35 +14,68 @@ import {
   Box,
   Divider,
   LoadingOverlay,
+  Loader,
 } from "@mantine/core";
 import { openModal, closeAllModals } from "@mantine/modals";
 import { useForm } from "@mantine/form";
 import { randomId } from "@mantine/hooks";
 import useStyles from "./DomainCard.styles";
 import { IconTrash } from "@tabler/icons";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
+dayjs.extend(duration);
+
 import tokens from "../../constants/tokens.json";
+import { SUBLET_ADDRESS } from "../../constants";
+import { useSignMessage } from "wagmi";
+
+interface FormValues {
+  price: string;
+  token: "WETH" | "USDC";
+  interval: "day" | "month" | "year";
+  minEnabled: boolean;
+  maxEnabled: boolean;
+  minIntervals: number;
+  maxIntervals: number | undefined;
+  listType: "any" | "individual";
+  subDomains: any;
+}
 
 function ModalForm({ domain }: { domain: any }) {
-  const form = useForm({
-    initialValues: {
-      price: "",
-      token: "weth",
-      interval: "year",
-      minEnabled: true,
-      maxEnabled: false,
-      minIntervals: 1,
-      maxIntervals: undefined,
-      listType: "any",
-      subDomains: [{ label: "", key: randomId() }],
-    },
-  });
+  const { data, error, isLoading, signMessage } = useSignMessage();
 
-  function submitListing() {
+  const initialValues: FormValues = {
+    price: "",
+    token: "WETH",
+    interval: "year",
+    minEnabled: true,
+    maxEnabled: false,
+    minIntervals: 1,
+    maxIntervals: undefined,
+    listType: "any",
+    subDomains: [{ label: "", key: randomId() }],
+  };
+  const form = useForm({ initialValues });
+
+  async function submitListing() {
     const { values } = form;
-    const tokenAddress = tokens.find(
-      (token) => token.symbol == "WETH"
-    )?.address;
+    console.log(values);
+    const token = tokens.find((token) => token.symbol == values.token);
+    if (!token) return;
+    const unitsPerInterval = ethers.utils.parseUnits(
+      values.price,
+      token.decimals
+    );
+    const interval = dayjs.duration(1, values.interval).asSeconds();
+    const minDuration = dayjs
+      .duration(values.minIntervals || 1, values.interval)
+      .asSeconds();
+    const maxDuration = values.maxIntervals
+      ? dayjs.duration(values.maxIntervals || 1e10, values.interval).asSeconds()
+      : 1e15;
+    const nonce = BigNumber.from(ethers.utils.randomBytes(32));
+
     const messageHash = ethers.utils.solidityKeccak256(
       [
         "address",
@@ -54,23 +87,24 @@ function ModalForm({ domain }: { domain: any }) {
         "address",
       ],
       [
-        tokenAddress,
-        // unitsPerInterval,
-        // interval,
-        // minRentalDuration,
-        // maxRentalDuration,
-        // nonce,
-        // Sublet.address,
+        token.address,
+        unitsPerInterval,
+        interval,
+        minDuration,
+        maxDuration,
+        nonce,
+        SUBLET_ADDRESS,
       ]
     );
-    const messageHashBinary = ethers.utils.arrayify(messageHash);
+    await signMessage({ message: messageHash });
+    console.log(data);
   }
 
   const tokenSelect = (
     <Select
       data={[
-        { value: "weth", label: "wETH" },
-        { value: "usdc", label: "USDC" },
+        { value: "WETH", label: "wETH" },
+        { value: "USDC", label: "USDC" },
       ]}
       styles={{
         input: {
@@ -79,13 +113,23 @@ function ModalForm({ domain }: { domain: any }) {
           borderBottomLeftRadius: 0,
         },
       }}
-      defaultValue="weth"
+      defaultValue="WETH"
       {...form.getInputProps("token")}
     />
   );
   return (
     <>
-      {/* <LoadingOverlay visible={true} overlayBlur={2} radius="md" /> */}
+      <LoadingOverlay
+        loader={
+          <div className="text-center">
+            <Loader />
+            <Text align="center">Awaiting signature</Text>
+          </div>
+        }
+        visible={isLoading}
+        overlayBlur={2}
+        radius="md"
+      />
       <Group grow spacing="sm">
         <TextInput
           className="w-full max-w-[65%]"
@@ -97,6 +141,7 @@ function ModalForm({ domain }: { domain: any }) {
               width: "90px",
             },
           })}
+          {...form.getInputProps("price")}
         />
         <Select
           label="Interval"
@@ -178,7 +223,7 @@ function ModalForm({ domain }: { domain: any }) {
         />
         {form.values.listType == "individual" ? (
           <>
-            {form.values.subDomains.map((item, index) => (
+            {form.values.subDomains.map((item: any, index: number) => (
               <Group key={item.key} mt="xs">
                 <TextInput
                   placeholder="Subdomain"
@@ -228,7 +273,7 @@ function ModalForm({ domain }: { domain: any }) {
           <Text>Users will be able to rent any subdomain</Text>
         )}
       </Box>
-      <Button fullWidth size="md">
+      <Button fullWidth size="md" onClick={submitListing}>
         Confirm
       </Button>
     </>
