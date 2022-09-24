@@ -11,6 +11,7 @@ import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
 import { MantineProvider } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
+import { NotificationsProvider } from "@mantine/notifications";
 import { Provider as UrqlProvider } from "urql";
 import { urqlClient } from "../utils/urql";
 import Layout from "../components/Layout";
@@ -59,9 +60,11 @@ function MyApp({ Component, pageProps }: AppProps) {
             }}
           >
             <ModalsProvider>
-              <Layout>
-                <Component {...pageProps} />
-              </Layout>
+              <NotificationsProvider>
+                <Layout>
+                  <Component {...pageProps} />
+                </Layout>
+              </NotificationsProvider>
             </ModalsProvider>
           </MantineProvider>
         </RainbowKitProvider>

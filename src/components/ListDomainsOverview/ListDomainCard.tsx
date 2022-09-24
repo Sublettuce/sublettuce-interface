@@ -17,6 +17,8 @@ import {
   Loader,
 } from "@mantine/core";
 import { openModal, closeAllModals } from "@mantine/modals";
+import { showNotification } from "@mantine/notifications";
+import { IconCheck } from "@tabler/icons";
 import { useForm } from "@mantine/form";
 import { randomId } from "@mantine/hooks";
 import useStyles from "./DomainCard.styles";
@@ -43,7 +45,17 @@ interface FormValues {
 }
 
 function ModalForm({ domain }: { domain: any }) {
-  const { data, error, isLoading, signMessage } = useSignMessage();
+  const { data, error, isLoading, signMessage } = useSignMessage({
+    onSuccess(data) {
+      closeAllModals();
+      showNotification({
+        color: "teal",
+        title: "Listing successful",
+        message: `Your have successfully listed subdomains for ${domain.name}`,
+        icon: <IconCheck size={16} />,
+      });
+    },
+  });
 
   const initialValues: FormValues = {
     price: "",
@@ -96,7 +108,8 @@ function ModalForm({ domain }: { domain: any }) {
         SUBLET_ADDRESS,
       ]
     );
-    await signMessage({ message: messageHash });
+    const messageHashBinary = ethers.utils.arrayify(messageHash);
+    await signMessage({ message: messageHashBinary });
     console.log(data);
   }
 
