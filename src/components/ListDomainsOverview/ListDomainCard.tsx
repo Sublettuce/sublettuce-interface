@@ -62,6 +62,7 @@ function ModalForm({ domain }: { domain: any }) {
         message: `Your have successfully listed subdomains for ${domain.name}`,
         icon: <IconCheck size={16} />,
       });
+      console.log(listingProps.current);
       await addDoc(dbListings, { ...listingProps.current, signature: data });
     },
     onError(data) {
@@ -107,10 +108,11 @@ function ModalForm({ domain }: { domain: any }) {
           .toString()
       : INFINITE_DURATION.toString();
     const nonce = BigNumber.from(ethers.utils.randomBytes(32));
+    console.log(values.subDomains);
     const subLabel = values.subDomains[0].label || null;
 
     let messageHash;
-    if ((values.listType = "any")) {
+    if (values.listType == "any") {
       messageHash = ethers.utils.solidityKeccak256(
         [
           "address",
@@ -311,7 +313,7 @@ function ModalForm({ domain }: { domain: any }) {
                       minWidth: "max-content",
                     },
                   })}
-                  {...form.getInputProps(`subDomains.${index}.name`)}
+                  {...form.getInputProps(`subDomains.${index}.label`)}
                   rightSection={
                     <Text color="dimmed" className="min-w-max">
                       .{domain.name}
@@ -331,8 +333,7 @@ function ModalForm({ domain }: { domain: any }) {
                 variant="subtle"
                 onClick={() =>
                   form.insertListItem("subDomains", {
-                    name: "",
-                    any: false,
+                    label: "",
                     key: randomId(),
                   })
                 }
