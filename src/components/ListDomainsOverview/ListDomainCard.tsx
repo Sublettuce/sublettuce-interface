@@ -54,6 +54,15 @@ function ModalForm({ domain }: { domain: any }) {
         message: `Your have successfully listed subdomains for ${domain.name}`,
         icon: <IconCheck size={16} />,
       });
+      console.log(data);
+    },
+    onError(data) {
+      showNotification({
+        color: "red",
+        title: "Error signing transaction",
+        message: data.message,
+        icon: <IconCheck size={16} />,
+      });
     },
   });
 
