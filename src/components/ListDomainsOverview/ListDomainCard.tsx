@@ -34,7 +34,7 @@ import { useSignMessage } from "wagmi";
 
 interface FormValues {
   price: string;
-  token: "WETH" | "USDC";
+  tokenSymbol: "WETH" | "USDC";
   interval: "day" | "month" | "year";
   minEnabled: boolean;
   maxEnabled: boolean;
@@ -68,7 +68,7 @@ function ModalForm({ domain }: { domain: any }) {
 
   const initialValues: FormValues = {
     price: "",
-    token: "WETH",
+    tokenSymbol: "WETH",
     interval: "year",
     minEnabled: true,
     maxEnabled: false,
@@ -82,7 +82,7 @@ function ModalForm({ domain }: { domain: any }) {
   async function submitListing() {
     const { values } = form;
     console.log(values);
-    const token = tokens.find((token) => token.symbol == values.token);
+    const token = tokens.find((token) => token.symbol == values.tokenSymbol);
     if (!token) return;
     const unitsPerInterval = ethers.utils.parseUnits(
       values.price,
@@ -136,7 +136,7 @@ function ModalForm({ domain }: { domain: any }) {
         },
       }}
       defaultValue="WETH"
-      {...form.getInputProps("token")}
+      {...form.getInputProps("tokenSymbol")}
     />
   );
   return (
