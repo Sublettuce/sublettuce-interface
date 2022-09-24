@@ -24,14 +24,16 @@ import { randomId } from "@mantine/hooks";
 import useStyles from "./DomainCard.styles";
 import { IconTrash } from "@tabler/icons";
 import { BigNumber, ethers } from "ethers";
+import { useAccount, useSignMessage } from "wagmi";
+import { useRef, useState } from "react";
+import { db } from "../../firebase";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 dayjs.extend(duration);
 
 import tokens from "../../constants/tokens.json";
 import { SUBLET_ADDRESS } from "../../constants";
-import { useSignMessage } from "wagmi";
-
 interface FormValues {
   price: string;
   tokenSymbol: "WETH" | "USDC";
@@ -45,8 +47,13 @@ interface FormValues {
 }
 
 function ModalForm({ domain }: { domain: any }) {
+  const dbListings = collection(db, "listings");
+
+  const listingProps = useRef<any>();
+  const { address } = useAccount();
+
   const { data, error, isLoading, signMessage } = useSignMessage({
-    onSuccess(data) {
+    async onSuccess(data) {
       closeAllModals();
       showNotification({
         color: "teal",
@@ -54,7 +61,7 @@ function ModalForm({ domain }: { domain: any }) {
         message: `Your have successfully listed subdomains for ${domain.name}`,
         icon: <IconCheck size={16} />,
       });
-      console.log(data);
+      await addDoc(dbListings, { ...listingProps.current, signature: data });
     },
     onError(data) {
       showNotification({
@@ -81,7 +88,6 @@ function ModalForm({ domain }: { domain: any }) {
 
   async function submitListing() {
     const { values } = form;
-    console.log(values);
     const token = tokens.find((token) => token.symbol == values.tokenSymbol);
     if (!token) return;
     const unitsPerInterval = ethers.utils.parseUnits(
@@ -96,30 +102,69 @@ function ModalForm({ domain }: { domain: any }) {
       ? dayjs.duration(values.maxIntervals || 1e10, values.interval).asSeconds()
       : 1e15;
     const nonce = BigNumber.from(ethers.utils.randomBytes(32));
+    const subLabel = values.subDomains[0].label || null;
 
-    const messageHash = ethers.utils.solidityKeccak256(
-      [
-        "address",
-        "uint256",
-        "uint64",
-        "uint64",
-        "uint64",
-        "uint256",
-        "address",
-      ],
-      [
-        token.address,
-        unitsPerInterval,
-        interval,
-        minDuration,
-        maxDuration,
-        nonce,
-        SUBLET_ADDRESS,
-      ]
-    );
+    let messageHash;
+    if ((values.listType = "any")) {
+      messageHash = ethers.utils.solidityKeccak256(
+        [
+          "address",
+          "uint256",
+          "uint64",
+          "uint64",
+          "uint64",
+          "uint256",
+          "address",
+        ],
+        [
+          token.address,
+          unitsPerInterval,
+          interval,
+          minDuration,
+          maxDuration,
+          nonce,
+          SUBLET_ADDRESS,
+        ]
+      );
+    } else {
+      messageHash = ethers.utils.solidityKeccak256(
+        [
+          "address",
+          "uint256",
+          "uint64",
+          "uint64",
+          "uint64",
+          "string",
+          "uint256",
+          "address",
+        ],
+        [
+          token.address,
+          unitsPerInterval,
+          interval,
+          minDuration,
+          maxDuration,
+          values.subDomains[0].label,
+          nonce,
+          SUBLET_ADDRESS,
+        ]
+      );
+    }
+
     const messageHashBinary = ethers.utils.arrayify(messageHash);
+    const props = {
+      owner: address,
+      name: domain.name,
+      tokenAddress: token.address,
+      unitsPerInterval: unitsPerInterval.toString(),
+      interval: interval.toString(),
+      minDuration: minDuration.toString(),
+      maxDuration: maxDuration.toString(),
+      subLabel,
+      nonce: nonce.toString(),
+    };
+    listingProps.current = props;
     await signMessage({ message: messageHashBinary });
-    console.log(data);
   }
 
   const tokenSelect = (
