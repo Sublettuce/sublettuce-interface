@@ -3,7 +3,7 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import ListDomainsOverview from "../components/ListDomainsOverview";
 
-const Home: NextPage = () => {
+const List: NextPage = () => {
   return (
     <div className="p-10">
       <Head>
@@ -17,4 +17,4 @@ const Home: NextPage = () => {
   );
 };
 
-export default Home;
+export default List;
