@@ -1,1 +1,3 @@
 export const SUBLET_ADDRESS = "0x9a676e781a523b5d0c0e43731313a708cb607508";
+
+export const INFINITE_DURATION = 2n ** 64n - 1n;

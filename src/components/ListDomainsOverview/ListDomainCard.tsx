@@ -33,7 +33,7 @@ import duration from "dayjs/plugin/duration";
 dayjs.extend(duration);
 
 import tokens from "../../constants/tokens.json";
-import { SUBLET_ADDRESS } from "../../constants";
+import { SUBLET_ADDRESS, INFINITE_DURATION } from "../../constants";
 interface FormValues {
   price: string;
   tokenSymbol: "WETH" | "USDC";
@@ -100,7 +100,7 @@ function ModalForm({ domain }: { domain: any }) {
       .asSeconds();
     const maxDuration = values.maxIntervals
       ? dayjs.duration(values.maxIntervals || 1e10, values.interval).asSeconds()
-      : 1e15;
+      : INFINITE_DURATION;
     const nonce = BigNumber.from(ethers.utils.randomBytes(32));
     const subLabel = values.subDomains[0].label || null;
 
