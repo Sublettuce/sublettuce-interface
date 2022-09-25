@@ -14,6 +14,7 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { IconChevronDown, IconSearch } from "@tabler/icons";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -121,7 +122,15 @@ export default function HeaderAction({ links }: HeaderActionProps) {
           />
           <Link href="/">
             <a className="no-underline text-inherit">
-              <Title order={1}>Sublet</Title>
+              <Title order={1}>
+                <Image
+                  src="/sublettuce.png"
+                  alt="logo"
+                  height={50}
+                  width={200}
+                  objectFit="contain"
+                />
+              </Title>
             </a>
           </Link>
         </Group>

@@ -414,7 +414,7 @@ function ModalForm({ domain }: { domain: any }) {
   );
 }
 
-export default function ListDomainCard({ domain }: { domain: any }) {
+export default function ListDomainCard({ wDomain }: { wDomain: any }) {
   const { classes } = useStyles();
 
   return (
@@ -422,20 +422,26 @@ export default function ListDomainCard({ domain }: { domain: any }) {
       <Group>
         <Container className={classes.scaled}>
           <Text size="lg">
-            <b>{domain.name.slice(0, -4)}</b>
-            {domain.name.slice(-4)}
+            <b>{wDomain.domain.name.slice(0, -4)}</b>
+            {wDomain.domain.name.slice(-4)}
+          </Text>
+          <Text color="dimmed">
+            Expires: {dayjs.unix(wDomain.expiryDate).format("DD/MM/YYYY")}
           </Text>
         </Container>
-        <Button
-          onClick={() => {
-            openModal({
-              title: <Title order={2}>List subdomains for rent</Title>,
-              children: <ModalForm domain={domain} />,
-            });
-          }}
-        >
-          List
-        </Button>
+        {/* only render button if domain is 2LD */}
+        {wDomain.domain.name.split(".").length == 2 && (
+          <Button
+            onClick={() => {
+              openModal({
+                title: <Title order={2}>List subdomains for rent</Title>,
+                children: <ModalForm domain={wDomain.domain} />,
+              });
+            }}
+          >
+            List
+          </Button>
+        )}
       </Group>
     </Card>
   );

@@ -13,9 +13,14 @@ export default function ListDomainsOverview() {
             domains {
                 name
                 labelName
+                registration {
+                  registrationDate
+                  expiryDate
+              }
             }
             wrappedDomains {
                 id
+                expiryDate
                 domain {
                     name
                     labelName
@@ -48,7 +53,7 @@ export default function ListDomainsOverview() {
           mb={60}
         >
           {userDomains.wrappedDomains?.map((domain: any) => (
-            <ListDomainCard key={domain.id} domain={domain.domain} />
+            <ListDomainCard key={domain.id} wDomain={domain} />
           ))}
         </SimpleGrid>
       ) : (

@@ -2,10 +2,13 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { NextPage } from "next";
 import { createStyles, Title, Text, Button, Grid, Col } from "@mantine/core";
 import Head from "next/head";
+import { NextLink } from "@mantine/next";
+import Image from "next/image";
 
 const useStyles = createStyles((theme) => ({
   wrapper: {
     padding: `${theme.spacing.xl * 2}px ${theme.spacing.xl}px`,
+    textAlign: "center",
   },
 
   title: {
@@ -38,26 +41,34 @@ const Home: NextPage = () => {
       <Head>
         <title>Sublet</title>
       </Head>
-      <Grid gutter={80} className="w-screen">
+      <Grid gutter={80} className="w-screen" justify="space-around">
         <Col span={12} md={5}>
+          <Image
+            src="/sublettuce-icon.svg"
+            alt="icon"
+            width={100}
+            height={100}
+          />
           <Title className={classes.title} order={2}>
             The marketplace for renting
             <span className={classes.highlight}>ENS subdomains</span>
           </Title>
-          <Text color="dimmed">
-            Sublet leverages the brand new ENS Namewrapper contract to unleash
-            the power of ENS subletting
+          <Text>
+            Unleashing the power of ENS subomain leasing using the new Name
+            Wrapper contract!
           </Text>
 
-          <Button
-            variant="gradient"
-            gradient={{ deg: 133, from: "blue", to: "cyan" }}
-            size="lg"
-            radius="md"
-            mt="xl"
-          >
-            Get started
-          </Button>
+          <NextLink href="/list">
+            <Button
+              variant="gradient"
+              gradient={{ deg: 133, from: "teal", to: "cyan" }}
+              size="lg"
+              radius="md"
+              mt="xl"
+            >
+              Get started
+            </Button>
+          </NextLink>
         </Col>
       </Grid>
     </div>

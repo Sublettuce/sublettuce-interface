@@ -46,6 +46,7 @@ import { formatUnits } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
 import { IconX } from "@tabler/icons";
 import { useState } from "react";
+import { closeAllModals } from "@mantine/modals";
 
 interface FormValues {
   subLabel: string;
@@ -143,13 +144,12 @@ export default function ModalForm({
       });
       return;
     }
-    setIsTxPending(true);
-    console.log(approvalData);
-    await approvalData?.wait();
-    setIsTxPending(false);
+
     await submitFillListing?.();
-    //@ts-ignore
-    await deleteDoc(doc);
+    closeAllModals();
+    if (docData.subLabel != null) {
+      await deleteDoc(doc);
+    }
   }
   return (
     <>
