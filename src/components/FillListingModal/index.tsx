@@ -16,23 +16,12 @@ import {
   LoadingOverlay,
   Loader,
 } from "@mantine/core";
-import { openModal, closeAllModals } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
-import { IconCheck } from "@tabler/icons";
 import { useForm } from "@mantine/form";
-import { randomId } from "@mantine/hooks";
-import { IconTrash } from "@tabler/icons";
-import { BigNumber, ethers } from "ethers";
-import { useAccount, useSignMessage } from "wagmi";
-import { useRef, useState } from "react";
 import { db } from "../../firebase";
 import { collection, addDoc, getDocs, DocumentData } from "firebase/firestore";
 import dayjs from "dayjs";
-import duration from "dayjs/plugin/duration";
-dayjs.extend(duration);
-
-import tokens from "../../constants/tokens.json";
-import { SUBLET_ADDRESS, INFINITE_DURATION } from "../../constants";
+import { formatInterval } from "../../utils/format";
 
 interface FormValues {
   subLabel: string;
@@ -40,6 +29,7 @@ interface FormValues {
 }
 
 export default function ModalForm({ doc }: { doc: DocumentData }) {
+  console.log(doc.subLabel);
   const initialValues: FormValues = {
     subLabel: doc.subLabel,
     intervalCount: undefined,
@@ -47,20 +37,39 @@ export default function ModalForm({ doc }: { doc: DocumentData }) {
   const form = useForm({ initialValues });
   return (
     <>
-      <NumberInput
-        label="Duration"
-        rightSection={
-          <Text size="sm" color={!form.values.minEnabled ? "dimmed" : ""}>
-            {form.values.interval.charAt(0).toUpperCase() +
-              form.values.interval.slice(1)}
-            s
-          </Text>
-        }
-        rightSectionWidth={80}
-        min={1}
-        disabled={!form.values.minEnabled}
-        {...form.getInputProps("minIntervals")}
-      />
+      <Group grow>
+        <TextInput
+          placeholder="Subdomain"
+          label="Name"
+          sx={{ flex: 1 }}
+          styles={(theme) => ({
+            input: {
+              border: "none",
+              borderRadius: 0,
+              borderBottom: "1px solid",
+            },
+            rightSection: {
+              minWidth: "max-content",
+            },
+          })}
+          data-autofocus={!doc.subLabel}
+          readOnly={doc.subLabel}
+          {...form.getInputProps("subLabel")}
+          rightSection={
+            <Text color="dimmed" className="min-w-max">
+              .{doc.name}
+            </Text>
+          }
+        />
+        <NumberInput
+          label="Duration"
+          rightSection={`${formatInterval(doc.interval)}s`}
+          rightSectionWidth={80}
+          min={1}
+          data-autofocus
+          max={doc.maxDuration / doc.interval}
+        />
+      </Group>
     </>
   );
 }

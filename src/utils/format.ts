@@ -1,5 +1,6 @@
 import type { DocumentData } from "firebase/firestore";
-import dayjs, { duration } from "dayjs";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
 import tokens from "../constants/tokens.json";
 import { formatUnits } from "ethers/lib/utils";
 
