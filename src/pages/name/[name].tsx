@@ -24,7 +24,7 @@ import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { useCollection } from "react-firebase-hooks/firestore";
 import { db } from "../../firebase";
-import { collection, DocumentData } from "firebase/firestore";
+import { collection, DocumentData, query, where } from "firebase/firestore";
 import { formatUnits } from "ethers/lib/utils";
 import tokens from "../../constants/tokens.json";
 import Image from "next/image";
@@ -106,7 +106,7 @@ const Home: NextPage = () => {
   });
 
   const [listings, listingsLoading, listingsError] = useCollection(
-    collection(db, "listings"),
+    query(collection(db, "listings"), where("name", "==", name)),
     {}
   );
 
