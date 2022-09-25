@@ -164,7 +164,7 @@ const Home: NextPage = () => {
               </Accordion.Control>
               <Accordion.Panel>
                 <LoadingOverlay visible={listingsLoading} />
-                {!listingsLoading && listings && (
+                {!listingsLoading && !!listings?.docs.length ? (
                   <Table>
                     <thead>
                       <tr>
@@ -244,6 +244,8 @@ const Home: NextPage = () => {
                       ))}
                     </tbody>
                   </Table>
+                ) : (
+                  "No active listings"
                 )}
               </Accordion.Panel>
             </Accordion.Item>
