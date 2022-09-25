@@ -11,8 +11,10 @@ import {
   Accordion,
   Table,
   Button,
+  TextInput,
   createStyles,
 } from "@mantine/core";
+import { openModal, closeAllModals } from "@mantine/modals";
 import {
   IconClipboardCheck,
   IconClock,
@@ -30,6 +32,8 @@ import tokens from "../../constants/tokens.json";
 import Image from "next/image";
 import { BigNumber } from "ethers";
 import { INFINITE_DURATION } from "../../constants";
+import FillListingModal from "../../components/FillListingModal";
+import { useEffect } from "react";
 
 dayjs.extend(duration);
 
@@ -105,11 +109,12 @@ const Home: NextPage = () => {
     query: QUERY_DOMAIN,
   });
 
-  const [listings, listingsLoading, listingsError] = useCollection(
-    query(collection(db, "listings"), where("name", "==", name)),
+  const [listings, listingsLoading] = useCollection(
+    router.isReady
+      ? query(collection(db, "listings"), where("name", "==", name))
+      : null,
     {}
   );
-
   if (result.error) {
     return <div className="text-center">Error fetching domain</div>;
   }
@@ -239,7 +244,18 @@ const Home: NextPage = () => {
                             )}
                           </td>
                           <td>
-                            <Button>Rent</Button>
+                            <Button
+                              onClick={() => {
+                                openModal({
+                                  title: "Subscribe to newsletter",
+                                  children: (
+                                    <FillListingModal doc={doc.data()} />
+                                  ),
+                                });
+                              }}
+                            >
+                              Rent
+                            </Button>
                           </td>
                         </tr>
                       ))}
