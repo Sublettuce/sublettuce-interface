@@ -33,7 +33,7 @@ import Image from "next/image";
 import { BigNumber } from "ethers";
 import { INFINITE_DURATION } from "../../constants";
 import FillListingModal from "../../components/FillListingModal";
-import { useEffect } from "react";
+import { formatRate, formatInterval } from "../../utils/format";
 
 dayjs.extend(duration);
 
@@ -57,33 +57,6 @@ const useStyles = createStyles((theme) => ({
     }`,
   },
 }));
-
-function formatInterval(interval: string) {
-  console.log(interval);
-  console.log(dayjs.duration(1, "day").asSeconds().toString());
-  let formattedInterval;
-  switch (interval) {
-    case dayjs.duration(1, "day").asSeconds().toString():
-      formattedInterval = "Day";
-      break;
-    case dayjs.duration(1, "month").asSeconds().toString():
-      formattedInterval = "Month";
-      break;
-    case dayjs.duration(1, "year").asSeconds().toString():
-      formattedInterval = "Year";
-      break;
-  }
-  return formattedInterval;
-}
-
-function formatRate(data: DocumentData) {
-  const token = tokens.find((token) => token.address == data.tokenAddress);
-  if (!token) return;
-  const formattedPrice = formatUnits(data.unitsPerInterval, token.decimals);
-  const formattedInterval = formatInterval(data.interval);
-  const rate = `${parseFloat(formattedPrice)}/${formattedInterval}`;
-  return rate;
-}
 
 const Home: NextPage = () => {
   const router = useRouter();

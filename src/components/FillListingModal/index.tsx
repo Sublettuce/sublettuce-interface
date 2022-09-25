@@ -36,9 +36,31 @@ import { SUBLET_ADDRESS, INFINITE_DURATION } from "../../constants";
 
 interface FormValues {
   subLabel: string;
-  intervalCount: number;
+  intervalCount: number | undefined;
 }
 
 export default function ModalForm({ doc }: { doc: DocumentData }) {
-  return <>{doc.name}</>;
+  const initialValues: FormValues = {
+    subLabel: doc.subLabel,
+    intervalCount: undefined,
+  };
+  const form = useForm({ initialValues });
+  return (
+    <>
+      <NumberInput
+        label="Duration"
+        rightSection={
+          <Text size="sm" color={!form.values.minEnabled ? "dimmed" : ""}>
+            {form.values.interval.charAt(0).toUpperCase() +
+              form.values.interval.slice(1)}
+            s
+          </Text>
+        }
+        rightSectionWidth={80}
+        min={1}
+        disabled={!form.values.minEnabled}
+        {...form.getInputProps("minIntervals")}
+      />
+    </>
+  );
 }
