@@ -247,7 +247,9 @@ const Home: NextPage = () => {
                             <Button
                               onClick={() => {
                                 openModal({
-                                  title: "Subscribe to newsletter",
+                                  title: (
+                                    <Title order={2}>Rent subdomain</Title>
+                                  ),
                                   children: (
                                     <FillListingModal doc={doc.data()} />
                                   ),
