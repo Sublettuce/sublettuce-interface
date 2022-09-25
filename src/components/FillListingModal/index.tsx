@@ -19,7 +19,12 @@ import {
 import { showNotification } from "@mantine/notifications";
 import { useForm } from "@mantine/form";
 import { db } from "../../firebase";
-import { collection, addDoc, getDocs, DocumentData } from "firebase/firestore";
+import {
+  DocumentData,
+  deleteDoc,
+  DocumentReference,
+  DocumentSnapshot,
+} from "firebase/firestore";
 import dayjs from "dayjs";
 import { formatInterval } from "../../utils/format";
 import { SUBLET_ADDRESS } from "../../constants";
@@ -30,6 +35,7 @@ import {
   useContractWrite,
   erc20ABI,
   useAccount,
+  useWaitForTransaction,
 } from "wagmi";
 import subletABI from "../../abis/Sublet.json";
 import Image from "next/image";
@@ -39,17 +45,24 @@ import tokens from "../../constants/tokens.json";
 import { formatUnits } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
 import { IconX } from "@tabler/icons";
+import { useState } from "react";
 
 interface FormValues {
   subLabel: string;
   intervalCount: number | undefined;
 }
 
-export default function ModalForm({ doc }: { doc: DocumentData }) {
-  const token = tokens.find((token) => token.address == doc.tokenAddress);
+export default function ModalForm({
+  docData,
+  doc,
+}: {
+  doc: DocumentReference;
+  docData: DocumentData;
+}) {
+  const token = tokens.find((token) => token.address == docData.tokenAddress);
 
   const initialValues: FormValues = {
-    subLabel: doc.subLabel,
+    subLabel: docData.subLabel,
     intervalCount: undefined,
   };
 
@@ -60,43 +73,49 @@ export default function ModalForm({ doc }: { doc: DocumentData }) {
     contractInterface: erc20ABI,
     signerOrProvider: signer,
   });
-  console.log(tokenContract.address);
+  const [isTxPending, setIsTxPending] = useState(false);
 
-  const { config: writeConfig } = usePrepareContractWrite({
+  const { config: approvalConfig } = usePrepareContractWrite({
     addressOrName: token?.address || "",
     contractInterface: erc20ABI,
     functionName: "approve",
     args: [SUBLET_ADDRESS, BigNumber.from(2).pow(256).sub(1)],
   });
+  const {
+    data: approvalData,
+    isLoading: isApprovalLoading,
+    writeAsync: approveTokens,
+  } = useContractWrite(approvalConfig);
 
-  const { isLoading: isApprovalLoading, writeAsync: approveTokens } =
-    useContractWrite(writeConfig);
+  const { isLoading: isApprovalPending } = useWaitForTransaction({
+    hash: approvalData?.hash,
+  });
 
   const form = useForm({ initialValues });
   const args = [
     {
-      nameHash: namehash.hash(doc.name.toLowerCase()),
-      subLabel: doc.subLabel.toLowerCase(),
-      owner: doc.owner,
-      payToken: doc.tokenAddress,
-      unitsPerInterval: doc.unitsPerInterval,
-      interval: doc.interval,
+      nameHash: namehash.hash(docData.name.toLowerCase()),
+      subLabel: form.values.subLabel?.toLowerCase(),
+      owner: docData.owner,
+      payToken: docData.tokenAddress,
+      unitsPerInterval: docData.unitsPerInterval,
+      interval: docData.interval,
       intervalCount: form.values.intervalCount,
-      minRentalDuration: doc.minDuration,
-      maxRentalDuration: doc.maxDuration,
-      isNameSpecific: doc.subLabel != null,
+      minRentalDuration: docData.minDuration,
+      maxRentalDuration: docData.maxDuration,
+      isNameSpecific: docData.subLabel != null,
     },
-    doc.signature,
-    doc.nonce,
+    docData.signature,
+    docData.nonce,
   ];
-  console.log(args);
-  const { config } = usePrepareContractWrite({
+  const { config: fillConfig } = usePrepareContractWrite({
     addressOrName: SUBLET_ADDRESS,
     contractInterface: subletABI,
     functionName: "fulfillRentalListingUpfront",
     args,
   });
-  const { data, isLoading, isSuccess, write } = useContractWrite(config);
+  const { isLoading: isFillLoading, writeAsync: submitFillListing } =
+    useContractWrite(fillConfig);
 
   async function fillListing() {
     const allowance: BigNumber = await tokenContract.allowance(
@@ -105,12 +124,16 @@ export default function ModalForm({ doc }: { doc: DocumentData }) {
     );
 
     const isApprovalRequired = allowance.lt(
-      BigNumber.from(doc.unitsPerInterval).mul(form.values.intervalCount || 1)
+      BigNumber.from(docData.unitsPerInterval).mul(
+        form.values.intervalCount || 1
+      )
     );
     console.log(isApprovalRequired);
 
     try {
-      if (isApprovalRequired) await approveTokens?.();
+      if (isApprovalRequired) {
+        await approveTokens?.();
+      }
     } catch (error: any) {
       showNotification({
         color: "red",
@@ -120,6 +143,13 @@ export default function ModalForm({ doc }: { doc: DocumentData }) {
       });
       return;
     }
+    setIsTxPending(true);
+    console.log(approvalData);
+    await approvalData?.wait();
+    setIsTxPending(false);
+    await submitFillListing?.();
+    //@ts-ignore
+    await deleteDoc(doc);
   }
   return (
     <>
@@ -131,6 +161,28 @@ export default function ModalForm({ doc }: { doc: DocumentData }) {
           </div>
         }
         visible={isApprovalLoading}
+        overlayBlur={2}
+        radius="md"
+      />
+      <LoadingOverlay
+        loader={
+          <div className="text-center">
+            <Loader />
+            <Text align="center">Confirm transaction</Text>
+          </div>
+        }
+        visible={isFillLoading}
+        overlayBlur={2}
+        radius="md"
+      />
+      <LoadingOverlay
+        loader={
+          <div className="text-center">
+            <Loader />
+            <Text align="center">Transaction pending</Text>
+          </div>
+        }
+        visible={isApprovalPending}
         overlayBlur={2}
         radius="md"
       />
@@ -149,22 +201,22 @@ export default function ModalForm({ doc }: { doc: DocumentData }) {
               minWidth: "max-content",
             },
           })}
-          data-autofocus={!doc.subLabel}
-          readOnly={doc.subLabel}
+          data-autofocus={!docData.subLabel}
+          readOnly={docData.subLabel}
           {...form.getInputProps("subLabel")}
           rightSection={
             <Text color="dimmed" className="min-w-max">
-              .{doc.name}
+              .{docData.name}
             </Text>
           }
         />
         <NumberInput
           label="Duration"
-          rightSection={`${formatInterval(doc.interval)}s`}
+          rightSection={`${formatInterval(docData.interval)}s`}
           rightSectionWidth={80}
           min={1}
           data-autofocus
-          max={doc.maxDuration / doc.interval}
+          max={docData.maxDuration / docData.interval}
           {...form.getInputProps("intervalCount")}
         />
       </Group>
@@ -179,7 +231,7 @@ export default function ModalForm({ doc }: { doc: DocumentData }) {
         <Text>
           {parseFloat(
             formatUnits(
-              BigNumber.from(doc.unitsPerInterval).mul(
+              BigNumber.from(docData.unitsPerInterval).mul(
                 form.values.intervalCount || 1
               ),
               token?.decimals

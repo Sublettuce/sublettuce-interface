@@ -229,7 +229,10 @@ const Home: NextPage = () => {
                                     <Title order={2}>Rent subdomain</Title>
                                   ),
                                   children: (
-                                    <FillListingModal doc={doc.data()} />
+                                    <FillListingModal
+                                      doc={doc.ref}
+                                      docData={doc.data()}
+                                    />
                                   ),
                                 });
                               }}
