@@ -9,6 +9,8 @@ import {
   Box,
   Group,
   Accordion,
+  Table,
+  Button,
   createStyles,
 } from "@mantine/core";
 import {
@@ -19,6 +21,17 @@ import {
   IconList,
 } from "@tabler/icons";
 import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
+import { useCollection } from "react-firebase-hooks/firestore";
+import { db } from "../../firebase";
+import { collection, DocumentData } from "firebase/firestore";
+import { formatUnits } from "ethers/lib/utils";
+import tokens from "../../constants/tokens.json";
+import Image from "next/image";
+import { BigNumber } from "ethers";
+import { INFINITE_DURATION } from "../../constants";
+
+dayjs.extend(duration);
 
 const useStyles = createStyles((theme) => ({
   wrapper: {
@@ -40,6 +53,33 @@ const useStyles = createStyles((theme) => ({
     }`,
   },
 }));
+
+function formatInterval(interval: string) {
+  console.log(interval);
+  console.log(dayjs.duration(1, "day").asSeconds().toString());
+  let formattedInterval;
+  switch (interval) {
+    case dayjs.duration(1, "day").asSeconds().toString():
+      formattedInterval = "Day";
+      break;
+    case dayjs.duration(1, "month").asSeconds().toString():
+      formattedInterval = "Month";
+      break;
+    case dayjs.duration(1, "year").asSeconds().toString():
+      formattedInterval = "Year";
+      break;
+  }
+  return formattedInterval;
+}
+
+function formatRate(data: DocumentData) {
+  const token = tokens.find((token) => token.address == data.tokenAddress);
+  if (!token) return;
+  const formattedPrice = formatUnits(data.unitsPerInterval, token.decimals);
+  const formattedInterval = formatInterval(data.interval);
+  const rate = `${parseFloat(formattedPrice)}/${formattedInterval}`;
+  return rate;
+}
 
 const Home: NextPage = () => {
   const router = useRouter();
@@ -65,6 +105,11 @@ const Home: NextPage = () => {
     query: QUERY_DOMAIN,
   });
 
+  const [listings, listingsLoading, listingsError] = useCollection(
+    collection(db, "listings"),
+    {}
+  );
+
   if (result.error) {
     return <div className="text-center">Error fetching domain</div>;
   }
@@ -78,7 +123,7 @@ const Home: NextPage = () => {
   if (!domain) {
     return <div className="text-center">Unregistered domain</div>;
   }
-  console.log(result.data);
+
   return (
     <div className="p-10 m-auto w-fit">
       <Group spacing="xl" align="flex-start">
@@ -131,21 +176,82 @@ const Home: NextPage = () => {
           </List>
         </Box>
         <Box className="flex-grow">
-          <Accordion multiple variant="separated">
-            <Accordion.Item className={classes.item} value="reset-password">
+          <Accordion multiple variant="separated" defaultValue={["listings"]}>
+            <Accordion.Item className={classes.item} value="listings">
               <Accordion.Control>
-                <Group align="flex-start">
+                <Group spacing="xs">
                   <IconTags />
-
                   <Title size="sm">Subdomains listed by owner</Title>
                 </Group>
               </Accordion.Control>
-              <Accordion.Panel>jifjeosfi</Accordion.Panel>
+              <Accordion.Panel>
+                <LoadingOverlay visible={listingsLoading} />
+                {!listingsLoading && listings && (
+                  <Table>
+                    <thead>
+                      <tr>
+                        <th>Sublabel</th>
+                        <th>Rate</th>
+                        <th>Min. duration</th>
+                        <th>Max. duration</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {listings.docs.map((doc, i) => (
+                        <tr key={i}>
+                          <td>{doc.data().subLabel}</td>
+                          <td>
+                            <Group spacing={5}>
+                              <Image
+                                src={`/icons/${
+                                  tokens.find(
+                                    (token) =>
+                                      token.address == doc.data().tokenAddress
+                                  )?.symbol
+                                }.png`}
+                                alt="USDC"
+                                width="20"
+                                height="20"
+                              />
+                              {formatRate(doc.data())}
+                            </Group>
+                          </td>
+                          <td>
+                            {doc.data().minDuration / doc.data().interval}{" "}
+                            {formatInterval(doc.data().interval)}
+                            {doc.data().minDuration / doc.data().interval > 1 &&
+                              "s"}
+                          </td>
+                          <td>
+                            {/* TODO: clean up this mess */}
+                            {BigNumber.from(doc.data().maxDuration).eq(
+                              INFINITE_DURATION
+                            ) ? (
+                              "None"
+                            ) : (
+                              <>
+                                {doc.data().maxDuration / doc.data().interval}{" "}
+                                {formatInterval(doc.data().interval)}
+                                {doc.data().maxDuration / doc.data().interval >
+                                  1 && "s"}
+                              </>
+                            )}
+                          </td>
+                          <td>
+                            <Button>Rent</Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                )}
+              </Accordion.Panel>
             </Accordion.Item>
 
-            <Accordion.Item className={classes.item} value="another-account">
+            <Accordion.Item className={classes.item} value="offers">
               <Accordion.Control>
-                <Group>
+                <Group spacing="xs">
                   <IconList />
                   <Title size="sm">Offers</Title>
                 </Group>
