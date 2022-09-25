@@ -22,6 +22,10 @@ import { db } from "../../firebase";
 import { collection, addDoc, getDocs, DocumentData } from "firebase/firestore";
 import dayjs from "dayjs";
 import { formatInterval } from "../../utils/format";
+import { useContractWrite, usePrepareContractWrite } from "wagmi";
+import { SUBLET_ADDRESS } from "../../constants";
+import subletABI from "../../abis/Sublet.json";
+const namehash = require("@ensdomains/eth-ens-namehash");
 
 interface FormValues {
   subLabel: string;
@@ -29,12 +33,35 @@ interface FormValues {
 }
 
 export default function ModalForm({ doc }: { doc: DocumentData }) {
-  console.log(doc.subLabel);
   const initialValues: FormValues = {
     subLabel: doc.subLabel,
     intervalCount: undefined,
   };
   const form = useForm({ initialValues });
+  const args = [
+    {
+      nameHash: namehash.hash(doc.name.toLowerCase()),
+      subLabel: doc.subLabel.toLowerCase(),
+      owner: doc.owner,
+      payToken: doc.tokenAddress,
+      unitsPerInterval: doc.unitsPerInterval,
+      interval: doc.interval,
+      intervalCount: form.values.intervalCount,
+      minRentalDuration: doc.minDuration,
+      maxRentalDuration: doc.maxDuration,
+      isNameSpecific: doc.subLabel != null,
+    },
+    doc.signature,
+    doc.nonce,
+  ];
+  console.log(args);
+  const { config } = usePrepareContractWrite({
+    addressOrName: SUBLET_ADDRESS,
+    contractInterface: subletABI,
+    functionName: "fulfillRentalListingUpfront",
+    args,
+  });
+  const { data, isLoading, isSuccess, write } = useContractWrite(config);
   return (
     <>
       <Group grow>
@@ -68,6 +95,7 @@ export default function ModalForm({ doc }: { doc: DocumentData }) {
           min={1}
           data-autofocus
           max={doc.maxDuration / doc.interval}
+          {...form.getInputProps("intervalCount")}
         />
       </Group>
     </>
