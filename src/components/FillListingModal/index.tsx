@@ -28,6 +28,8 @@ import {
   useSigner,
   usePrepareContractWrite,
   useContractWrite,
+  erc20ABI,
+  useAccount,
 } from "wagmi";
 import subletABI from "../../abis/Sublet.json";
 import Image from "next/image";
@@ -36,6 +38,7 @@ const namehash = require("@ensdomains/eth-ens-namehash");
 import tokens from "../../constants/tokens.json";
 import { formatUnits } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
+import { IconX } from "@tabler/icons";
 
 interface FormValues {
   subLabel: string;
@@ -44,10 +47,31 @@ interface FormValues {
 
 export default function ModalForm({ doc }: { doc: DocumentData }) {
   const token = tokens.find((token) => token.address == doc.tokenAddress);
+
   const initialValues: FormValues = {
     subLabel: doc.subLabel,
     intervalCount: undefined,
   };
+
+  const { address } = useAccount();
+  const { data: signer } = useSigner();
+  const tokenContract = useContract({
+    addressOrName: token?.address || "",
+    contractInterface: erc20ABI,
+    signerOrProvider: signer,
+  });
+  console.log(tokenContract.address);
+
+  const { config: writeConfig } = usePrepareContractWrite({
+    addressOrName: token?.address || "",
+    contractInterface: erc20ABI,
+    functionName: "approve",
+    args: [SUBLET_ADDRESS, BigNumber.from(2).pow(256).sub(1)],
+  });
+
+  const { isLoading: isApprovalLoading, writeAsync: approveTokens } =
+    useContractWrite(writeConfig);
+
   const form = useForm({ initialValues });
   const args = [
     {
@@ -73,8 +97,43 @@ export default function ModalForm({ doc }: { doc: DocumentData }) {
     args,
   });
   const { data, isLoading, isSuccess, write } = useContractWrite(config);
+
+  async function fillListing() {
+    const allowance: BigNumber = await tokenContract.allowance(
+      address,
+      SUBLET_ADDRESS
+    );
+
+    const isApprovalRequired = allowance.lt(
+      BigNumber.from(doc.unitsPerInterval).mul(form.values.intervalCount || 1)
+    );
+    console.log(isApprovalRequired);
+
+    try {
+      if (isApprovalRequired) await approveTokens?.();
+    } catch (error: any) {
+      showNotification({
+        color: "red",
+        title: "Error approving tokens",
+        message: error.message,
+        icon: <IconX size={16} />,
+      });
+      return;
+    }
+  }
   return (
     <>
+      <LoadingOverlay
+        loader={
+          <div className="text-center">
+            <Loader />
+            <Text align="center">Approve your {token?.symbol}</Text>
+          </div>
+        }
+        visible={isApprovalLoading}
+        overlayBlur={2}
+        radius="md"
+      />
       <Group grow>
         <TextInput
           placeholder="Subdomain"
@@ -134,6 +193,7 @@ export default function ModalForm({ doc }: { doc: DocumentData }) {
         fullWidth
         className="transition"
         size="md"
+        onClick={fillListing}
       >
         Rent
       </Button>
