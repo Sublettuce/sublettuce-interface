@@ -18,22 +18,34 @@ import {
 } from "@mantine/core";
 import { openModal, closeAllModals } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
-import { IconCheck } from "@tabler/icons";
+import { IconCheck, IconTrash, IconX } from "@tabler/icons";
 import { useForm } from "@mantine/form";
 import { randomId } from "@mantine/hooks";
 import useStyles from "./DomainCard.styles";
-import { IconTrash } from "@tabler/icons";
 import { BigNumber, ethers } from "ethers";
-import { useAccount, useSignMessage } from "wagmi";
+import {
+  useAccount,
+  useContract,
+  useSigner,
+  usePrepareContractWrite,
+  useSignMessage,
+  useContractWrite,
+} from "wagmi";
 import { useRef, useState } from "react";
 import { db } from "../../firebase";
 import { collection, addDoc, getDocs } from "firebase/firestore";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 dayjs.extend(duration);
+const namehash = require("@ensdomains/eth-ens-namehash");
 
 import tokens from "../../constants/tokens.json";
-import { SUBLET_ADDRESS, INFINITE_DURATION } from "../../constants";
+import {
+  SUBLET_ADDRESS,
+  INFINITE_DURATION,
+  NAMEWRAPPER_ADDRESS,
+} from "../../constants";
+import nameWrapperABI from "../../abis/NameWrapper.json";
 
 interface FormValues {
   price: string;
@@ -53,7 +65,30 @@ function ModalForm({ domain }: { domain: any }) {
   const listingProps = useRef<any>();
   const { address } = useAccount();
 
-  const { data, error, isLoading, signMessage } = useSignMessage({
+  const { data: signer } = useSigner();
+
+  const nameWrapper = useContract({
+    addressOrName: NAMEWRAPPER_ADDRESS,
+    contractInterface: nameWrapperABI,
+    signerOrProvider: signer,
+  });
+
+  const { config: writeConfig } = usePrepareContractWrite({
+    addressOrName: NAMEWRAPPER_ADDRESS,
+    contractInterface: nameWrapperABI,
+    functionName: "setApprovalForAll",
+    args: [SUBLET_ADDRESS, true],
+  });
+
+  const { isLoading: isApprovalLoading, writeAsync: approveDomains } =
+    useContractWrite(writeConfig);
+
+  const {
+    data,
+    error,
+    isLoading: isSignLoading,
+    signMessage,
+  } = useSignMessage({
     async onSuccess(data) {
       closeAllModals();
       showNotification({
@@ -70,7 +105,7 @@ function ModalForm({ domain }: { domain: any }) {
         color: "red",
         title: "Error signing transaction",
         message: data.message,
-        icon: <IconCheck size={16} />,
+        icon: <IconX size={16} />,
       });
     },
   });
@@ -89,6 +124,21 @@ function ModalForm({ domain }: { domain: any }) {
   const form = useForm({ initialValues });
 
   async function submitListing() {
+    const isApproved = await nameWrapper.isTokenOwnerOrApproved(
+      namehash.hash(domain.name),
+      SUBLET_ADDRESS
+    );
+    try {
+      if (!isApproved) await approveDomains?.();
+    } catch (error: any) {
+      showNotification({
+        color: "red",
+        title: "Error approving domains",
+        message: error.message,
+        icon: <IconX size={16} />,
+      });
+      return;
+    }
     const { values } = form;
     const token = tokens.find((token) => token.symbol == values.tokenSymbol);
     if (!token) return;
@@ -200,7 +250,18 @@ function ModalForm({ domain }: { domain: any }) {
             <Text align="center">Awaiting signature</Text>
           </div>
         }
-        visible={isLoading}
+        visible={isSignLoading}
+        overlayBlur={2}
+        radius="md"
+      />
+      <LoadingOverlay
+        loader={
+          <div className="text-center">
+            <Loader />
+            <Text align="center">Approve your domains</Text>
+          </div>
+        }
+        visible={isApprovalLoading}
         overlayBlur={2}
         radius="md"
       />
