@@ -188,7 +188,12 @@ const Home: NextPage = () => {
                                       token.address == doc.data().tokenAddress
                                   )?.symbol
                                 }.png`}
-                                alt="USDC"
+                                alt={
+                                  tokens.find(
+                                    (token) =>
+                                      token.address == doc.data().tokenAddress
+                                  )?.symbol
+                                }
                                 width="20"
                                 height="20"
                               />

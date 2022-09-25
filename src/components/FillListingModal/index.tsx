@@ -22,10 +22,20 @@ import { db } from "../../firebase";
 import { collection, addDoc, getDocs, DocumentData } from "firebase/firestore";
 import dayjs from "dayjs";
 import { formatInterval } from "../../utils/format";
-import { useContractWrite, usePrepareContractWrite } from "wagmi";
 import { SUBLET_ADDRESS } from "../../constants";
+import {
+  useContract,
+  useSigner,
+  usePrepareContractWrite,
+  useContractWrite,
+} from "wagmi";
 import subletABI from "../../abis/Sublet.json";
+import Image from "next/image";
 const namehash = require("@ensdomains/eth-ens-namehash");
+
+import tokens from "../../constants/tokens.json";
+import { formatUnits } from "ethers/lib/utils";
+import { BigNumber } from "ethers";
 
 interface FormValues {
   subLabel: string;
@@ -33,6 +43,7 @@ interface FormValues {
 }
 
 export default function ModalForm({ doc }: { doc: DocumentData }) {
+  const token = tokens.find((token) => token.address == doc.tokenAddress);
   const initialValues: FormValues = {
     subLabel: doc.subLabel,
     intervalCount: undefined,
@@ -98,6 +109,34 @@ export default function ModalForm({ doc }: { doc: DocumentData }) {
           {...form.getInputProps("intervalCount")}
         />
       </Group>
+      <Group mt="lg" mb="lg" spacing={3}>
+        <Text mr={5}>Total:</Text>
+        <Image
+          src={`/icons/${token?.symbol}.png`}
+          alt={token?.symbol}
+          width="25"
+          height="25"
+        />
+        <Text>
+          {parseFloat(
+            formatUnits(
+              BigNumber.from(doc.unitsPerInterval).mul(
+                form.values.intervalCount || 1
+              ),
+              token?.decimals
+            )
+          )}{" "}
+          {token?.symbol}
+        </Text>
+      </Group>
+      <Button
+        disabled={!(form.values.subLabel && form.values.intervalCount)}
+        fullWidth
+        className="transition"
+        size="md"
+      >
+        Rent
+      </Button>
     </>
   );
 }
