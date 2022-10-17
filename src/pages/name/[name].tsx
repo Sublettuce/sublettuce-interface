@@ -11,7 +11,7 @@ import {
   Accordion,
   Table,
   Button,
-  TextInput,
+  Text,
   createStyles,
 } from "@mantine/core";
 import { openModal, closeAllModals } from "@mantine/modals";
@@ -178,7 +178,11 @@ const Home: NextPage = () => {
                     <tbody>
                       {listings.docs.map((doc, i) => (
                         <tr key={i}>
-                          <td>{doc.data().subLabel}</td>
+                          <td>
+                            {doc.data().subLabel || (
+                              <Text color="dimmed">* Any</Text>
+                            )}
+                          </td>
                           <td>
                             <Group spacing={5}>
                               <Image
